@@ -102,7 +102,7 @@ void updateLift()
 {
     if (currentTick - lastTick > interval)
     {
-        if (newState && currentState != targetState)
+        if (newState == true && currentState != targetState)
         {
             switch (targetState)
             {
@@ -127,7 +127,7 @@ void updateLift()
                     break;
             }
 
-          newState = false;
+            newState = false;
         }
 
         lastTick = currentTick;
@@ -145,13 +145,18 @@ void test()
     downwards = !downwards;
 
     if (downwards) {
-      currentState = RISEN;
-      targetState = LOWERED;
-      newState = true;
+      //currentState = RISEN;
+      //targetState = LOWERED;
+      motorDirection(DOWN);
+      startMotor();
+      //newState = true;
     } else {
-      currentState = LOWERED;
-      targetState = RISEN;
-      newState = true;
+      //currentState = LOWERED;
+      //targetState = RISEN;
+      startMotor();
+      motorDirection(UP);
+      
+      //newState = true;
     }
 
     lastTestTick = currentTick;
@@ -161,8 +166,8 @@ void test()
 void setup()
 {
     Serial.begin(baud, config);
-    modbus.begin(id, baud, config);
-    modbus.configureHoldingRegisters(holdingRegisters, registerRead, registerWrite);
+    //modbus.begin(id, baud, config);
+    //modbus.configureHoldingRegisters(holdingRegisters, registerRead, registerWrite);
 
     // pin 2 and 3 set for limit switches!
     pinMode(2, INPUT_PULLUP);
@@ -176,6 +181,7 @@ void setup()
     pinMode(13, OUTPUT);
 
     // Find out where the scissor lift is at startup!
+    /*
     bool bottom = digitalRead(2);
     bool top = digitalRead(3);
 
@@ -202,12 +208,13 @@ void setup()
         }
         newState = true;
     }
+    */
 }
 
 void loop()
 {
     currentTick = millis();
-    modbus.poll();
-    updateLift();
+    //modbus.poll();
+    //updateLift();
     test();
 }
