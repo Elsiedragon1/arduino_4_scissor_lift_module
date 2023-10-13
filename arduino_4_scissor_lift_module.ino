@@ -144,17 +144,17 @@ void test()
   {
     downwards = !downwards;
 
-    if (downwards) {
+    if (downwards == true) {
       //currentState = RISEN;
       //targetState = LOWERED;
-      motorDirection(DOWN);
+      setMotorDirection(DOWN);
       startMotor();
       //newState = true;
     } else {
       //currentState = LOWERED;
       //targetState = RISEN;
       startMotor();
-      motorDirection(UP);
+      setMotorDirection(UP);
       
       //newState = true;
     }
