@@ -49,7 +49,11 @@ int16_t registerWrite(uint16_t address, bool data)
 uint32_t lastSensorCheck = 0;
 uint32_t sensorInterval = 1000/60;
 
-uint32_t sensorTriggerDuration = 100;
+uint32_t sensorTriggerDuration = 50;
+
+//  This prevents the scissor lift moving on startup! It has to be under instruction of the game or debug menu!
+//  Safety first!
+bool resetOnStart = false;
 
 bool initialTriggerBottom = false;
 uint32_t triggerTimeBottom = 0;
@@ -114,27 +118,27 @@ void updateLift()
 {
     if (currentTick - lastTick > interval)
     {
-            if (triggerBottom)
-    {
-        if (currentState == LOWER)
+        if (triggerBottom)
+        {
+            if (currentState == LOWER)
+            {
+                stopMotor();
+                currentState = LOWERED;
+            }
+        }
+        if (triggerTop)
+        {
+            if(currentState == RISE)
+            {
+                stopMotor();
+                currentState = RISEN;
+            }
+        }
+        if (emergencyStop && currentState != RISEN && currentState != LOWERED)
         {
             stopMotor();
-            currentState = LOWERED;
+            currentState = STOP;
         }
-    }
-    if (triggerTop)
-    {
-        if(currentState == RISE)
-        {
-            stopMotor();
-            currentState = RISEN;
-        }
-    }
-    if (emergencyStop && currentState != RISEN && currentState != LOWERED)
-    {
-        stopMotor();
-        currentState = STOP;
-    }
         if (newState == true && currentState != targetState)
         {
             switch (targetState)
@@ -220,7 +224,7 @@ void checkSensors()
       if (currentTick - triggerTimeTop > sensorTriggerDuration) {
         triggerTop = true;
       }
-      if (currentTick - triggerTimeBottom > emergencyStopDuration) {
+      if (currentTick - triggerTimeTop > emergencyStopDuration) {
           emergencyStop = true;
       }
     }
@@ -270,23 +274,26 @@ void setup()
         currentState = ERROR;
         //  Now what?
     } else {
-        if ( !top )
-        {  // RESET
-            currentState = RISEN;
-            targetState = LOWERED;
-        }
-        if ( !bottom )
+        if (resetOnStart)
         {
-            currentState = LOWERED;
-            targetState = LOWERED;
+          if ( !top )
+          {  // RESET
+              currentState = RISEN;
+              targetState = LOWERED;
+          }
+          if ( !bottom )
+          {
+              currentState = LOWERED;
+              targetState = LOWERED;
+          }
+          if ( top && bottom )
+          {
+              // Somewhere in between
+              currentState = LOWER;
+              targetState = LOWERED;
+          }
+          newState = true;
         }
-        if ( top && bottom )
-        {
-            // Somewhere in between
-            currentState = LOWER;
-            targetState = LOWERED;
-        }
-        newState = true;
     }
 }
 
