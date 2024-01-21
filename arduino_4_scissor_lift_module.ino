@@ -28,9 +28,8 @@ ModbusRTUSlave modbus(Serial, buffer, bufferSize, dePin);
 
 const uint8_t dirPin = 4;
 const uint8_t enablePin = 5;
-
-//  Set the currentState to 2: RISEN ... that way on startup the 
-volatile uint16_t currentState = 0;    //  Read by the controller - has the actual mode so that mechanical issues don't occur
+ 
+volatile uint16_t currentState = STOP;    //  Read by the controller - has the actual mode so that mechanical issues don't occur
 uint16_t targetState = 0;              //  Written to by the controller! What the scissor lift is currently trying to do!
 volatile bool newState = false;
 
@@ -273,6 +272,7 @@ void setup()
         // Both are triggered! should be impossible!
         currentState = ERROR;
         //  Now what?
+        //  Check and manual reboot!
     } else {
         if (resetOnStart)
         {
