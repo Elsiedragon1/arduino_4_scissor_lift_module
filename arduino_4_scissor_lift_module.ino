@@ -61,7 +61,7 @@ bool initialTriggerTop = false;
 uint32_t triggerTimeTop = 0;
 bool triggerTop = false;
 
-uint32_t emergencyStopDuration = 1000;
+uint32_t emergencyStopDuration = 2000;
 bool emergencyStop = false;
 
 // Coils
@@ -86,7 +86,7 @@ bool coilWrite(uint16_t address, uint8_t data)
 }
 
 uint32_t lastTick = 0;
-uint32_t interval = 1000/10;
+uint32_t interval = 1000/60;
 
 void stopMotor()
 {
@@ -168,31 +168,6 @@ void updateLift()
 
         lastTick = currentTick;
     }
-}
-
-bool downwards = true;
-
-uint32_t lastTestTick = 0;
-
-void test()
-{
-  if (currentTick - lastTestTick > 3000)
-  {
-    resetTriggers();
-    downwards = !downwards;
-
-    if (downwards == true) {
-      currentState = RISEN;
-      targetState = LOWERED;
-      newState = true;
-    } else {
-      currentState = LOWERED;
-      targetState = RISEN;
-      newState = true;
-    }
-
-    lastTestTick = currentTick;
-  }
 }
 
 void checkSensors()
@@ -303,5 +278,4 @@ void loop()
     modbus.poll();
     checkSensors();
     updateLift();
-    //test();
 }
