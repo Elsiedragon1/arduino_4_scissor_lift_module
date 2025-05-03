@@ -28,6 +28,9 @@ ModbusRTUSlave modbus(Serial, buffer, bufferSize, dePin);
 
 const uint8_t dirPin = 4;
 const uint8_t enablePin = 5;
+
+const uint8_t outputPin1 = 6;
+const uint8_t outputPin2 = 7;
  
 volatile uint16_t currentState = STOP;    //  Read by the controller - has the actual mode so that mechanical issues don't occur
 uint16_t targetState = 0;              //  Written to by the controller! What the scissor lift is currently trying to do!
@@ -47,6 +50,9 @@ int16_t registerWrite(uint16_t address, bool data)
 
 uint32_t lastSensorCheck = 0;
 uint32_t sensorInterval = 1000/60;
+
+uint32_t lastOutput = 0;
+uint32_t outputInterval = 100;
 
 uint32_t sensorTriggerDuration = 50;
 
@@ -222,6 +228,44 @@ void resetTriggers()
   emergencyStop = false;
 }
 
+void outputState()
+{
+  if (currentTick - lastOutput > outputInterval)
+  {
+    switch(currentState)
+    {
+      case 0: //  LOWERED
+        digitalWrite(outputPin1, 0);
+        digitalWrite(outputPin2, 0);
+        break;
+      case 1: // RISING
+        digitalWrite(outputPin1, 0);
+        digitalWrite(outputPin2, 1);
+        break;
+      case 2: // RISEN
+        digitalWrite(outputPin1, 1);
+        digitalWrite(outputPin2, 0);
+        break;
+      case 3: // LOWERING
+        digitalWrite(outputPin1, 1);
+        digitalWrite(outputPin2, 1);
+        break;
+      case 4: // STOPPED
+        digitalWrite(outputPin1, 1);
+        digitalWrite(outputPin2, 1);
+        break;
+      case 5: // ERROR
+        digitalWrite(outputPin1, 0);
+        digitalWrite(outputPin2, 0);
+        break;
+      default:  // UNKNOWN
+        digitalWrite(outputPin1, 0);
+        digitalWrite(outputPin2, 0);
+    }
+    lastOutput = currentTick;
+  }
+}
+
 void setup()
 {
     Serial.begin(baud, config);
@@ -237,6 +281,9 @@ void setup()
     // Motor control pins
     pinMode(dirPin, OUTPUT);
     pinMode(enablePin, OUTPUT);
+
+    pinMode(outputPin1, OUTPUT);
+    pinMode(outputPin2, OUTPUT);
 
     // Find out where the scissor lift is at startup!
     bool bottom = digitalRead(2);
@@ -278,4 +325,5 @@ void loop()
     modbus.poll();
     checkSensors();
     updateLift();
+    outputState();
 }
